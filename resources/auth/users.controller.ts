@@ -1,15 +1,11 @@
 import { Request, Response } from 'express';
 import JwtHelper from '../../utils/jwtHelper';
 import redis from '../../utils/redis';
+import { JwtPayload, QueryParams, User, IsValidClient } from '../../types';
+import ClientsService from './index.service';
 
 let jwtHelper: JwtHelper = new JwtHelper();
-
-interface User {
-    email: string;
-    role: string;
-    name: string;
-    image?: string;
-}
+let clientsService: ClientsService = new ClientsService();
 
 // some data for the dummy user
 const user: User = {
@@ -18,20 +14,6 @@ const user: User = {
     name: 'Aryan',
     image: 'https://avatars.githubusercontent.com/u/47269261?v=4'
 };
-
-interface JwtPayload {
-    username: string;
-    email: string;
-    role: string;
-    name: string;
-}
-
-interface QueryParams {
-    client_id?: string;
-    redirect_uri?: string;
-    response_type?: string;
-    scope?: string;
-}
 
 export default class UserAuthController {
     constructor() {
@@ -68,7 +50,7 @@ export default class UserAuthController {
 
     public async handleOauthRequest(req: Request, res: Response): Promise<void> {
         const { client_id, redirect_uri, response_type, scope }: QueryParams = req.query as QueryParams;
-        const host: string | undefined = req.get('host');
+        let host: string | undefined = req.get('host');
 
         let requiredParams: { key: string, value: any }[] = [
             { key: 'client_id', value: client_id },
@@ -97,6 +79,18 @@ export default class UserAuthController {
         // ToDos:
         // 1. Check if the client_id, redirect_uri, and origin are valid
         // 2. Check if the scopes are allowed
+        let scopes: string[] = scope ? scope.split(' ') : [];
+        let isValidClient: IsValidClient = await clientsService.isValidClient(client_id as string, redirect_uri as string, host as string, scopes);
+
+        if (!isValidClient.success) {
+            console.log(scopes, host)
+            res.status(401).json({
+                ok: false,
+                message: 'Invalid client',
+                ...isValidClient
+            });
+            return;
+        }
 
         // Check if the user is logged in
         let token: string | undefined = req.cookies.token;

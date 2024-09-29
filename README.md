@@ -7,6 +7,6 @@ I will attempt to complete a POC in less than 1 day. The time now is 0600 hrs, 2
 ### ToDos
 - [x] Create database for clients
 - [ ] Create database for users
-- [ ] Create endpoints for OAuth flow
+- [x] Create endpoints for OAuth flow
 - [ ] Make UI for user login and permission prompt
 - [ ] Create dashboard for clients
