@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import JwtHelper from '../../utils/jwtHelper';
 import redis from '../../utils/redis';
-import { JwtPayload, QueryParams, User, IsValidClient } from '../../types';
+import { JwtPayload, AuthCodeGrantQueryParams, User, IsValidClient, RequestI } from '../../types';
 import ClientsService from './index.service';
 
 let jwtHelper: JwtHelper = new JwtHelper();
@@ -48,8 +48,8 @@ export default class UserAuthController {
         });
     }
 
-    public async handleOauthRequest(req: Request, res: Response): Promise<void> {
-        const { client_id, redirect_uri, response_type, scope }: QueryParams = req.query as QueryParams;
+    public async handleOauthRequest(req: RequestI, res: Response): Promise<void> {
+        const { client_id, redirect_uri, response_type, scope, state }: AuthCodeGrantQueryParams = req.query as unknown as AuthCodeGrantQueryParams;
         let host: string | undefined = req.get('host');
 
         let requiredParams: { key: string, value: any }[] = [
@@ -57,10 +57,11 @@ export default class UserAuthController {
             { key: 'redirect_uri', value: redirect_uri },
             { key: 'host', value: host },
             { key: 'scope', value: scope },
+            { key: 'response_type', value: response_type }
         ];
-
+        
         let missingParams: string[] = [];
-
+        
         requiredParams.forEach(param => {
             if (!param.value) {
                 missingParams.push(param.key);
@@ -76,9 +77,14 @@ export default class UserAuthController {
             return;
         }
 
-        // ToDos:
-        // 1. Check if the client_id, redirect_uri, and origin are valid
-        // 2. Check if the scopes are allowed
+        if (response_type !== 'code') {
+            res.status(400).json({
+                ok: false,
+                message: 'response_type'
+            });
+            return;
+        }
+
         let scopes: string[] = scope ? scope.split(' ') : [];
         let isValidClient: IsValidClient = await clientsService.isValidClient(client_id as string, redirect_uri as string, host as string, scopes);
 
@@ -92,17 +98,9 @@ export default class UserAuthController {
             return;
         }
 
-        // Check if the user is logged in
-        let token: string | undefined = req.cookies.token;
-        let decoded: JwtPayload | null = token ? jwtHelper.verify<JwtPayload>(token) : null;
-        if (!decoded) {
-            let originalUrl: string = req.originalUrl;
-            res.redirect(`/login?redirectTo=${originalUrl}`);
-            return;
-        }
-
         let code: string = this._generateSecretCode();
-        this._addToKVStore(code, client_id as string, decoded.email);
+        let email: string = req.user?.email as string;
+        this._addToKVStore(code, client_id as string, email);
         console.log(redis.keys());
 
         res.redirect(`${redirect_uri}?code=${code}`);

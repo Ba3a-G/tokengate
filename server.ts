@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser';
 import { connectToDatabase } from './utils/db';
 import UserAuthController from './resources/auth/users.controller';
 import ClientAuthController from './resources/auth/clients.controller';
+import { authMiddleware } from './middlewares/auth';
 
 const port: number = 3000;
 const app: Application = express();
@@ -16,12 +17,15 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 app.get('/', (req: Request, res: Response): void => {
-    res.send('Hello World!');
+    res.json({
+        ok: true,
+        message: 'healthy'
+    });
 });
 
 app.post('/login', userAuthController.handleLogin);
-app.get('/oauth', userAuthController.handleOauthRequest);
-app.post('/token', clientAuthController.exchangeCodeForToken);
+app.get('/oauth', authMiddleware, userAuthController.handleOauthRequest);
+app.post('/token', clientAuthController.token);
 
 const startServer = async (): Promise<void> => {
     await connectToDatabase();

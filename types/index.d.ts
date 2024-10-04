@@ -1,3 +1,5 @@
+import { Request } from 'express';
+
 export interface JwtPayload {
     username: string;
     email: string;
@@ -6,11 +8,12 @@ export interface JwtPayload {
     image?: string;
 }
 
-export interface QueryParams {
-    client_id?: string;
-    redirect_uri?: string;
-    response_type?: string;
-    scope?: string;
+export interface AuthCodeGrantQueryParams {
+    client_id: string;
+    redirect_uri: string;
+    response_type: string;
+    scope: string;
+    state?: string;
 }
 
 export interface User {
@@ -36,4 +39,8 @@ export interface IsValidClient {
     origin: boolean;
     redirect_uri: boolean;
     scopes?: boolean;
+}
+
+export interface RequestI extends Request {
+    user?: JwtPayload | null;
 }

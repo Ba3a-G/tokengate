@@ -19,4 +19,8 @@ export default class JwtHelper {
             return null;
         }
     }
+
+    decode<T extends JwtPayload>(token: string): T | null {
+        return jwt.decode(token) as T;
+    }
 }
