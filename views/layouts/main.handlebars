@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TokenGate</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-background: #000000;
+            --color-surface: #0a0a0a;
+            --color-surface-variant: #141414;
+            --color-on-surface: #e0e0e0;
+            --color-on-surface-variant: #a0a0a0;
+            --color-outline: #2a2a2a;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--color-background);
+            color: var(--color-on-surface);
+            line-height: 1.5;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+        main {
+            flex-grow: 1;
+            padding: 2rem 0;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <div class="container">
+            {{{body}}}
+        </div>
+    </main>
+</body>
+</html>

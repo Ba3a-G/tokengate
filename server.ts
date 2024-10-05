@@ -1,6 +1,7 @@
 import express, { Request, Response, Application } from 'express';
 import 'dotenv/config';
 import cookieParser from 'cookie-parser';
+import { engine } from 'express-handlebars';
 
 import { connectToDatabase } from './utils/db';
 import UserAuthController from './resources/auth/users.controller';
@@ -16,6 +17,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+
+app.engine('handlebars', engine());
+app.set('view engine', 'handlebars');
+app.set('views', './views');
+
 app.get('/', (req: Request, res: Response): void => {
     res.json({
         ok: true,
@@ -23,6 +29,12 @@ app.get('/', (req: Request, res: Response): void => {
     });
 });
 
+app.get('/login', (req: Request, res: Response): void => {
+    res.render('login');
+});
+app.get('/prompt', (req: Request, res: Response): void => {
+    res.render('prompt');
+});
 app.post('/login', userAuthController.handleLogin);
 app.get('/oauth', authMiddleware, userAuthController.handleOauthRequest);
 app.post('/token', clientAuthController.token);
